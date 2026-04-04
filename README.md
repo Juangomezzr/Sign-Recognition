@@ -26,7 +26,7 @@ flowchart TD
 ```
 
 ## Lista de tareas
-- [ ] Verificar estructura de datos: `train_detection/`, `test_detection/`, y `gt.txt` en cada carpeta.
+- [X] Verificar estructura de datos: `train_detection/`, `test_detection/`, y `gt.txt` en cada carpeta.
 - [ ] Usar rutas multiplataforma con `pathlib` u `os.path.join` para cargar imagenes.
 - [ ] Crear/asegurar el directorio de salida `resultado_imgs` antes de procesar.
 - [ ] Cargar imagen y convertir a escala de grises (preprocesamiento MSER).

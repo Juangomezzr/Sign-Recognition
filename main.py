@@ -26,13 +26,25 @@ if __name__ == "__main__":
     # Ensure output folder exists
 
 
-# Realizar script con una sola imagen de prueba posteriormente implementar las pruebas para todas las imagenes
     os.makedirs("resultado_imgs", exist_ok=True)
 
     test_path = Path("test_detection")
     train_path = Path("train_detection")
    
 
+    img = train_path / "00000.png"
 
+    # Cargar img
+    img = cv2.imread(img)
 
+    # Escala de grises
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    cv2.imshow("vista",img)
+    cv2.waitKey(0)
 
+    # Equalizacion para aumentar contraste
+    eq = cv2.equalizeHist(img)
+    cv2.imshow("vista", eq)
+    cv2.waitKey(0)
+
+    cv2.destroyAllWindows()
