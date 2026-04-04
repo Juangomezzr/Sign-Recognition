@@ -23,3 +23,31 @@ flowchart TD
     %% Colores modificados para el primer y último nodo
     style A fill:#bbdefb,stroke:#1976d2,stroke-width:2px,color:#000000
     style J fill:#ffe0b2,stroke:#f57c00,stroke-width:2px,color:#000000
+```
+
+## Lista de tareas
+- [ ] Verificar estructura de datos: `train_detection/`, `test_detection/`, y `gt.txt` en cada carpeta.
+- [ ] Usar rutas multiplataforma con `pathlib` u `os.path.join` para cargar imagenes.
+- [ ] Crear/asegurar el directorio de salida `resultado_imgs` antes de procesar.
+- [ ] Cargar imagen y convertir a escala de grises (preprocesamiento MSER).
+- [ ] (Opcional) Mejorar contraste si las detecciones son pobres.
+- [ ] Crear detector MSER y ejecutar `mser.detectRegions`.
+- [ ] Convertir regiones a bounding boxes con `cv2.boundingRect`.
+- [ ] Ajustar rectangulos por relacion de aspecto para filtrar falsos positivos.
+- [ ] Expandir ligeramente cada rectangulo para incluir el borde blanco del panel.
+- [ ] Recortar cada ventana detectada y redimensionar a tamano fijo (ej. 40x80).
+- [ ] Convertir recorte a HSV y generar mascara de azul saturado (1/0).
+- [ ] Definir mascara ideal de panel (azul esperado) del mismo tamano fijo.
+- [ ] Calcular correlacion entre mascara detectada e ideal para obtener score.
+- [ ] Aplicar umbral al score para descartar no-paneles.
+- [ ] Eliminar duplicados con criterio de solapamiento (IoU) y mejor score (NMS).
+- [ ] Guardar imagenes de test con cajas rojas y score amarillo en `resultado_imgs`.
+- [ ] Escribir `resultado.txt` con formato `fichero;x1;y1;x2;y2;1;score`.
+- [ ] Ejecutar `evaluar_resultados.py` desde la carpeta del `resultado.txt`.
+- [ ] Documentar curvas precision-recall para IoU 0.5 y 0.7 en la memoria.
+- [ ] Verificar que no se usan clasificadores ni librerias ML (solo procesamiento de imagen).
+
+## Opcionales
+- [ ] Probar filtros adicionales (Hough, esquinas, etc.) sin usar ML.
+- [ ] Ajustar parametros MSER para reducir falsas detecciones.
+- [ ] Comparar variantes de umbral HSV y tamano de ventana para mejorar AP.
