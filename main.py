@@ -1,4 +1,6 @@
 import argparse
+import cv2
+import os
 
 
 if __name__ == "__main__":
@@ -21,6 +23,12 @@ if __name__ == "__main__":
     # Load testing data
 
     # Evaluate detections
+
+    # Ensure output folder exists
+
+
+# Realizar script con una sola imagen de prueba posteriormente implementar las pruebas para todas las imagenes
+    os.makedirs("resultado_imgs", exist_ok=True)
 
 
 
