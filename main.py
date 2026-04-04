@@ -1,8 +1,7 @@
 import argparse
 import cv2
 import os
-
-
+from pathlib import Path
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
@@ -30,6 +29,9 @@ if __name__ == "__main__":
 # Realizar script con una sola imagen de prueba posteriormente implementar las pruebas para todas las imagenes
     os.makedirs("resultado_imgs", exist_ok=True)
 
+    test_path = Path("test_detection")
+    train_path = Path("train_detection")
+   
 
 
 
