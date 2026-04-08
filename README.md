@@ -32,7 +32,6 @@ flowchart TD
 - [ ] Cargar imagen y convertir a escala de grises (preprocesamiento MSER).
 - [ ] (Opcional) Mejorar contraste si las detecciones son pobres.
 - [ ] Crear detector MSER y ejecutar `mser.detectRegions`.
-- [ ] Convertir regiones a bounding boxes con `cv2.boundingRect`.
 - [ ] Ajustar rectangulos por relacion de aspecto para filtrar falsos positivos.
 - [ ] Expandir ligeramente cada rectangulo para incluir el borde blanco del panel.
 - [ ] Recortar cada ventana detectada y redimensionar a tamano fijo (ej. 40x80).
