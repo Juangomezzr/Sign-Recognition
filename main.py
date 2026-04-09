@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 
-delta = 0
+delta = 1
 min_area = 1000
 max_area = 50000
 max_variation=0.1
@@ -18,7 +18,7 @@ azul_bajos = np.array([90, 200, 40], dtype=np.uint8)
 azul_altos = np.array([150, 255, 255], dtype=np.uint8)
 mascara_ideal = np.ones((alto, ancho), dtype=np.float32)
 umbral_score = 0.55
-
+umbral_iou = 0.2
 
 def crear_detector_mser():
     return cv2.MSER_create(
@@ -131,46 +131,45 @@ def filtrar_detecciones_por_color(image, candidatos, config_color):
 
     return detecciones_finales
 
+def calcular_iou(boxA, boxB):
+    # box = (x1, y1, x2, y2, score)
+    xA = max(boxA[0], boxB[0])
+    yA = max(boxA[1], boxB[1])
+    xB = min(boxA[2], boxB[2])
+    yB = min(boxA[3], boxB[3])
 
-def calcular_area(deteccion):
-    x1, y1, x2, y2, _ = deteccion
-    # Se usa para priorizar cajas grandes antes que cajas pequenas.
-    return max(0, x2 - x1) * max(0, y2 - y1)
+    # Área de la intersección
+    interArea = max(0, xB - xA) * max(0, yB - yA)
 
+    # Áreas de cada caja
+    boxAArea = (boxA[2] - boxA[0]) * (boxA[3] - boxA[1])
+    boxBArea = (boxB[2] - boxB[0]) * (boxB[3] - boxB[1])
 
-def contiene_caja(deteccion_externa, deteccion_interna):
-    ex1, ey1, ex2, ey2, _ = deteccion_externa
-    ix1, iy1, ix2, iy2, _ = deteccion_interna
-    # Devuelve True si la caja externa encierra completamente a la interna.
-    return ex1 <= ix1 and ey1 <= iy1 and ex2 >= ix2 and ey2 >= iy2
+    # IoU = Intersección / (Área A + Área B - Intersección)
+    iou = interArea / float(boxAArea + boxBArea - interArea)
+    return iou
 
+def nms_maximos_locales(detecciones, umbral_iou=umbral_iou):
+    if not detecciones:
+        return []
 
-def eliminar_solapadas(detecciones_finales):
-    # Ordenamos de mayor a menor area para quedarnos antes con la caja
-    # mas grande, que es la que queremos conservar si contiene a otras.
-    detecciones_ordenadas = sorted(
-        detecciones_finales,
-        key=calcular_area,
-        reverse=True,
-    )
-    detecciones_filtradas = []
-
-    for deteccion_actual in detecciones_ordenadas:
-        solapa = False
-
-        for deteccion_guardada in detecciones_filtradas:
-            # Si ya hemos guardado una caja mas grande que contiene a la actual,
-            # descartamos la actual porque es una deteccion redundante.
-            if contiene_caja(deteccion_guardada, deteccion_actual):
-                solapa = True
-                break
-
-        if not solapa:
-            # Solo se guarda si no esta contenida en otra caja mayor.
-            detecciones_filtradas.append(deteccion_actual)
-
-    return detecciones_filtradas
-
+    # 1. Ordenar por SCORE de mayor a menor (priorizamos confianza sobre tamaño)
+    # El PDF sugiere elegir la ventana con mayor score 
+    detecciones = sorted(detecciones, key=lambda x: x[4], reverse=True)
+    
+    seleccionadas = []
+    while len(detecciones) > 0:
+        actual = detecciones.pop(0)
+        seleccionadas.append(actual)
+        
+        # 2. Filtrar el resto: eliminar las que solapen mucho con la 'actual'
+        # porque consideramos que son el mismo panel detectado varias veces 
+        detecciones = [
+            d for d in detecciones 
+            if calcular_iou(actual, d) < umbral_iou
+        ]
+        
+    return seleccionadas
 
 def dibujar_candidatos(image, candidatos):
     image_copy = image.copy()
@@ -235,14 +234,14 @@ if __name__ == "__main__":
 
         # Paso 4: detectar regiones y filtrar candidatos geométricos.
 
-        # bboxes, candidatos = obtener_candidatos(mser, eq) AQUI??????
+        bboxes, candidatos = obtener_candidatos(mser, eq) 
 
-        
+
 
 
         # Paso 5 y 6: calcular score por correlación y eliminar solapadas.
         detecciones = filtrar_detecciones_por_color(img, candidatos, config_color)
-        detecciones_finales = eliminar_solapadas(detecciones)
+        detecciones_finales = nms_maximos_locales(detecciones)
 
         # Paso 7: Escribir en el archivo de texto y guardar imagen
         for x1, y1, x2, y2, score in detecciones_finales:
