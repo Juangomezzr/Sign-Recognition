@@ -4,21 +4,22 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-
-delta = 1
+# Jugar con el filtrado de imagenes
+delta = 1 # Mantener
 min_area = 1000
 max_area = 50000
-max_variation=0.1
-top_ratio = 4.0
-bottom_ratio = 0.2
+max_variation=0.01
+top_ratio = 9.0 # Mantener
+bottom_ratio = 0.2 # Mantener
 resize_percentage = 0.05
-alto = 80
+alto = 40
 ancho = 80
-azul_bajos = np.array([90, 200, 40], dtype=np.uint8)
-azul_altos = np.array([150, 255, 255], dtype=np.uint8)
+azul_bajos = np.array([90, 50, 40], dtype=np.uint8) # Mantener
+azul_altos = np.array([150, 255, 255], dtype=np.uint8) # Mantener
 mascara_ideal = np.ones((alto, ancho), dtype=np.float32)
-umbral_score = 0.55
+umbral_score = 0.60
 umbral_iou = 0.2
+interpolation = cv2.INTER_NEAREST
 
 def crear_detector_mser():
     return cv2.MSER_create(
@@ -39,8 +40,9 @@ def cargar_imagen(image_path):
 # Equializacion por tiles
 def preprocesar_imagen(image):
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=0.5, tileGridSize=(20,20))
-    equalized_image = clahe.apply(gray_image)
+    gray_blur = cv2.GaussianBlur(gray_image, (3, 3), 0)
+    clahe = cv2.createCLAHE(clipLimit=0.5, tileGridSize=(10,10))
+    equalized_image = clahe.apply(gray_blur)
     return gray_image, equalized_image
 
 # Filatrdoo de relacion aspecto
@@ -92,6 +94,7 @@ def calcular_score_azul(recorte, config_color):
     recorte_resized = cv2.resize(
         recorte,
         (config_color["ancho"], config_color["alto"]),
+        interpolation=interpolation
     )
 
     hsv_image = cv2.cvtColor(recorte_resized, cv2.COLOR_BGR2HSV)

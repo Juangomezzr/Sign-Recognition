@@ -1,3 +1,4 @@
 test_detection/
 train_detection/
 resultado_imgs/
+gt.py
