@@ -1,16 +1,31 @@
 import argparse
 import os
 from pathlib import Path
-
 import cv2
 import numpy as np
 
 
+delta = 0
+min_area = 1000
+max_area = 50000
+max_variation=0.1
+top_ratio = 4.0
+bottom_ratio = 0.2
+resize_percentage = 0.05
+alto = 80
+ancho = 80
+azul_bajos = np.array([90, 200, 40], dtype=np.uint8)
+azul_altos = np.array([150, 255, 255], dtype=np.uint8)
+mascara_ideal = np.ones((alto, ancho), dtype=np.float32)
+umbral_score = 0.55
+
+
 def crear_detector_mser():
     return cv2.MSER_create(
-        delta=0,
-        min_area=1000,
-        max_variation=0.9,
+        delta,
+        min_area,
+        max_area,
+        max_variation,
     )
 
 
@@ -35,7 +50,7 @@ def obtener_candidatos(detector, equalized_image):
     candidatos = []
     for x, y, w, h in bboxes:
         ratio = w / float(h)
-        if 0.2 < ratio < 4.0:
+        if bottom_ratio < ratio < top_ratio:
             candidatos.append((x, y, w, h))
 
     return bboxes, candidatos
@@ -58,13 +73,7 @@ def agrandar_caja(caja, porcentaje):
     return nuevo_x, nuevo_y, nuevo_w, nuevo_h
 
 # Configuracion filtro de color
-def crear_configuracion_color():
-    alto = 80
-    ancho = 80
-    azul_bajos = np.array([90, 200, 40], dtype=np.uint8)
-    azul_altos = np.array([150, 255, 255], dtype=np.uint8)
-    mascara_ideal = np.ones((alto, ancho), dtype=np.float32)
-    umbral_score = 0.60
+def crear_configuracion_color():   
 
     return {
         "alto": alto,
@@ -101,11 +110,11 @@ def calcular_score_azul(recorte, config_color):
 
 def filtrar_detecciones_por_color(image, candidatos, config_color):
     detecciones_finales = []
-    porcentaje_agrandado = 0.05
+    
     alto_imagen, ancho_imagen = image.shape[:2]
 
     for x, y, w, h in candidatos:
-        x, y, w, h = agrandar_caja((x, y, w, h), porcentaje_agrandado)
+        x, y, w, h = agrandar_caja((x, y, w, h), resize_percentage)
         x1 = max(0, x)
         y1 = max(0, y)
         x2 = min(ancho_imagen, x + w)
@@ -188,7 +197,6 @@ def dibujar_detecciones_finales(image, detecciones_finales):
 
     return image_copy
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Trains and executes a given detector over a set of testing images"
@@ -207,43 +215,49 @@ if __name__ == "__main__":
     # Paso 1: preparar rutas y salida.
     os.makedirs("resultado_imgs", exist_ok=True)
     test_path = Path(args.test_path)
-    train_path = Path(args.train_path)
+    
+    # Abrimos el archivo de texto en modo escritura ("w")
+    archivo_resultados = open("resultado.txt", "w")
 
-    # Paso 2: crear detector y cargar imagen.
+    # Paso 2: crear detector y configuración
     mser = crear_detector_mser()
-    img_path = train_path / "00001.png"
-    img = cargar_imagen(img_path)
-
-    # Paso 3: preprocesar para MSER.
-    gray, eq = preprocesar_imagen(img)
-    cv2.imshow("img", gray)
-    cv2.waitKey(0)
-    cv2.imshow("img", eq)
-    cv2.waitKey(0)
-
-    # Paso 4: detectar regiones y filtrar candidatos geometricos.
-    bboxes, candidatos = obtener_candidatos(mser, eq)
-    print("len boxes", len(bboxes))
-    print("len candidatos", len(candidatos))
-
-    img_viz = dibujar_candidatos(img, candidatos)
-    cv2.imshow("img", img_viz)
-    cv2.waitKey(0)
-
-    # Paso 5: preparar la configuracion del filtro HSV y la mascara ideal.
     config_color = crear_configuracion_color()
 
-    # Paso 6: calcular score por correlacion y quedarnos con los validos.
-    detecciones_finales = filtrar_detecciones_por_color(
-        img,
-        candidatos,
-        config_color,
-    )
-    detecciones_finales = eliminar_solapadas(detecciones_finales)
-    print("len detecciones finales", len(detecciones_finales))
+    print(f"Procesando imágenes en: {test_path}...")
 
-    # Paso 7: visualizar resultado final.
-    img_blue = dibujar_detecciones_finales(img, detecciones_finales)
-    cv2.imshow("img", img_blue)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # Iteramos sobre todos los archivos .png en la carpeta de test
+    for img_path in test_path.glob("*.png"):
+        nombre_fichero = img_path.name
+        img = cargar_imagen(img_path)
+
+        # Paso 3: preprocesar para MSER.
+        gray, eq = preprocesar_imagen(img)
+
+        # Paso 4: detectar regiones y filtrar candidatos geométricos.
+
+        # bboxes, candidatos = obtener_candidatos(mser, eq) AQUI??????
+
+        
+
+
+        # Paso 5 y 6: calcular score por correlación y eliminar solapadas.
+        detecciones = filtrar_detecciones_por_color(img, candidatos, config_color)
+        detecciones_finales = eliminar_solapadas(detecciones)
+
+        # Paso 7: Escribir en el archivo de texto y guardar imagen
+        for x1, y1, x2, y2, score in detecciones_finales:
+            # Formato: <nombre_fichero>;<x1>;<y1>;<x2>;<y2>;<tipo>;<score>
+            # El tipo siempre es 1.
+            linea = f"{nombre_fichero};{x1};{y1};{x2};{y2};1;{score:.4f}\n"
+            archivo_resultados.write(linea)
+
+        # Dibujar rectángulos y guardar la imagen en resultado_imgs
+        img_final = dibujar_detecciones_finales(img, detecciones_finales)
+        ruta_guardado = os.path.join("resultado_imgs", nombre_fichero)
+        cv2.imwrite(ruta_guardado, img_final)
+        
+        print(f"Procesada {nombre_fichero} -> {len(detecciones_finales)} detecciones")
+
+    # Cerramos el archivo al terminar
+    archivo_resultados.close()
+    print("Proceso finalizado. Resultados guardados en 'resultado.txt' y 'resultado_imgs/'")
