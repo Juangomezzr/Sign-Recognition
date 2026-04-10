@@ -6,19 +6,19 @@ import numpy as np
 
 # Jugar con el filtrado de imagenes
 delta = 1 # Mantener
-min_area = 1000
-max_area = 50000
+min_area = 5000
+max_area = 200000
 max_variation=0.01
 top_ratio = 9.0 # Mantener
 bottom_ratio = 0.2 # Mantener
 resize_percentage = 0.05
-alto = 40
-ancho = 80
-azul_bajos = np.array([90, 50, 40], dtype=np.uint8) # Mantener
+alto = 50
+ancho = 100
+azul_bajos = np.array([90, 60, 40], dtype=np.uint8) # Mantener
 azul_altos = np.array([150, 255, 255], dtype=np.uint8) # Mantener
 mascara_ideal = np.ones((alto, ancho), dtype=np.float32)
-umbral_score = 0.60
-umbral_iou = 0.2
+umbral_score = 0.55
+umbral_iou = 0.5
 interpolation = cv2.INTER_NEAREST
 
 def crear_detector_mser():
