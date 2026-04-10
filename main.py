@@ -12,8 +12,8 @@ max_variation=0.01
 top_ratio = 9.0 # Mantener
 bottom_ratio = 0.2 # Mantener
 resize_percentage = 0.05
-alto = 50
-ancho = 100
+alto = 30
+ancho = 60
 azul_bajos = np.array([90, 60, 40], dtype=np.uint8) # Mantener
 azul_altos = np.array([150, 255, 255], dtype=np.uint8) # Mantener
 mascara_ideal = np.ones((alto, ancho), dtype=np.float32)
