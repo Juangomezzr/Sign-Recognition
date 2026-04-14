@@ -2,7 +2,7 @@
 echo ===========================================
 echo [1/2] Ejecutando el detector (main.py)...
 echo ===========================================
-python main.py
+python main.py 
 
 echo.
 echo ===========================================
