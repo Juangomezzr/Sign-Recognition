@@ -3,7 +3,8 @@ import os
 from pathlib import Path
 import cv2
 import numpy as np
-import detectors.detector_mser 
+import detectors.detector_mser
+import detectors.detector_color_distribucion
 
 
 if __name__ == "__main__":
@@ -11,7 +12,7 @@ if __name__ == "__main__":
         description="Trains and executes a given detector over a set of testing images"
     )
     parser.add_argument(
-        "--detector", type=str, nargs="?", default="", help="Detector string name"
+        "--detector", type=str, nargs="?", default="mser", help="Detector string name"
     )
     parser.add_argument(
         "--train_path", default="train_detection", help="Select the training data dir"
@@ -24,9 +25,12 @@ if __name__ == "__main__":
     # Paso 1: preparar rutas y salida.
     os.makedirs("resultado_imgs", exist_ok=True)
     test_path = Path(args.test_path)
-    
+
     match args.detector:
         case "mser":
             detectors.detector_mser.detectar_mser(test_path)
-        case _ : 
+        case "c_d":
+            detectors.detector_color_distribucion.detectar_color_distribucion(test_path)
+        case _:
+            print("Detector no reconocido. Usando mser por defecto.")
             detectors.detector_mser.detectar_mser(test_path)

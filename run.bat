@@ -1,6 +1,8 @@
 @echo off
+
+echo.
 echo ===========================================
-echo [1/2] Ejecutando el detector (main.py)...
+echo [1/2] Ejecutando detector: c_d
 echo ===========================================
 python main.py 
 
