@@ -154,7 +154,7 @@ def nms_maximos_locales(detecciones, umbral_iou=umbral_iou):
         return []
 
     # 1. Ordenar por SCORE de mayor a menor (priorizamos confianza sobre tamaño)
-    # El PDF sugiere elegir la ventana con mayor score 
+
     detecciones = sorted(detecciones, key=lambda x: x[4], reverse=True)
     
     seleccionadas = []
@@ -182,7 +182,7 @@ def dibujar_detecciones_finales(image, detecciones_finales):
     image_copy = image.copy()
 
     for x1, y1, x2, y2, score in detecciones_finales:
-        cv2.rectangle(image_copy, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        cv2.rectangle(image_copy, (x1, y1), (x2, y2), (0, 0, 255), 2)
         cv2.putText(
             image_copy,
             f"{score:.2f}",
